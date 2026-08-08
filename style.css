@@ -33,28 +33,32 @@ body {
   background-color: var(--card-bg);
   border: 1px solid var(--border-color);
   border-radius: 16px;
-  padding: 1.25rem 0.85rem;
+  padding: 1rem 0.85rem;
   width: 100%;
   max-width: 380px;
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
-  /* Make card flex column so sections share vertical space */
+  
+  /* Fixed height layout */
+  height: 80vh;          /* Takes 80% of viewport height */
+  min-height: 550px;     /* Prevents collapsing on small screens */
+  max-height: 700px;
   display: flex;
   flex-direction: column;
 }
 
 .header {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 700;
-  margin-bottom: 1.25rem;
-  display: flex;
-  align-items: center;
+  margin-bottom: 0.75rem;
+  flex-shrink: 0;        /* Header never shrinks */
 }
 
 .section {
-  margin-bottom: 1.25rem;
+  flex: 1;               /* Occupies top half of remaining space */
   display: flex;
   flex-direction: column;
-  min-height: 0; /* Critical for nested scrollable flex children */
+  min-height: 0;         /* CRITICAL: Allows inner list to scroll instead of pushing layout */
+  margin-bottom: 0.75rem;
 }
 
 .section-header {
@@ -62,6 +66,7 @@ body {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 0.5rem;
+  flex-shrink: 0;
 }
 
 .label {
@@ -99,26 +104,28 @@ body {
 }
 
 .scrollable-list {
-  max-height: 180px; /* Adjust height limit as needed */
-  overflow-y: auto !important; /* Force vertical scrollbar */
+  flex: 1;               /* Fills all remaining space in top half */
+  min-height: 0;         /* Allows scrolling */
+  overflow-y: auto !important;
   overflow-x: hidden;
   padding-right: 4px;
-}
-
-.scrollable-list {
   -webkit-overflow-scrolling: touch;
 }
 
-/* Custom scrollbar for sleek look */
+/* Custom scrollbar styling */
 .scrollable-list::-webkit-scrollbar {
-  width: 4px;
+  width: 5px;
 }
 .scrollable-list::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
 }
 .scrollable-list::-webkit-scrollbar-thumb {
   background: var(--border-color);
   border-radius: 4px;
+}
+.scrollable-list::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
 }
 
 .task-card {
@@ -190,19 +197,22 @@ body {
 
 /* Calendar Container & Grid */
 .calendar-container {
+  flex: 1;               /* Occupies bottom half of space */
+  display: flex;
+  flex-direction: column;
   background-color: rgba(0, 0, 0, 0.25);
   border: 1px solid var(--border-color);
   border-radius: 12px;
-  padding: 0.6rem 0.4rem;
-  width: 100%;
+  padding: 0.6rem 0.5rem;
+  min-height: 0;         /* Prevents expansion */
 }
 
 .calendar-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 0.75rem;
-  padding: 0 0.2rem;
+  margin-bottom: 0.5rem;
+  flex-shrink: 0;
 }
 
 .calendar-title {
@@ -235,7 +245,8 @@ body {
   grid-template-rows: auto repeat(6, 1fr);
   gap: 3px;
   width: 100%;
-  min-height: 285px; 
+  flex: 1;               /* Fits strictly into bottom half */
+  min-height: 0;
 }
 
 .weekday {
