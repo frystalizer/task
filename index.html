@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Task Scheduler</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="card">
+    <div class="header">
+      <span>📅 Task Scheduler</span>
+    </div>
+
+    <!-- Upcoming Tasks Section -->
+    <div class="section">
+      <div class="label">Due This Week</div>
+      <div id="upcoming-tasks-list" class="task-list">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- Calendar Section -->
+    <div class="calendar-container">
+      <div class="calendar-header">
+        <button id="prev-month" class="nav-btn">&lt;</button>
+        <div id="calendar-title" class="calendar-title">Month Year</div>
+        <button id="next-month" class="nav-btn">&gt;</button>
+      </div>
+      <div id="calendar-grid" class="calendar-grid">
+        <!-- Calendar slots rendered dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Add Task Button -->
+  <button id="open-modal-btn" class="fab-btn">+ Add Task</button>
+
+  <!-- Add Task Popup Modal -->
+  <div id="task-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>New Recurring Task</h3>
+        <button id="close-modal-btn" class="close-btn">&times;</button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Task Description</label>
+          <input type="text" id="task-title-input" class="form-input" placeholder="e.g. Water plants, Change filter" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Start Date</label>
+          <input type="date" id="task-start-input" class="form-input" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Repeat Interval</label>
+          <select id="task-interval-select" class="form-input form-select">
+            <option value="1">Daily</option>
+            <option value="7" selected>Weekly</option>
+            <option value="14">Bi-weekly (Every 2 weeks)</option>
+            <option value="30">Monthly (Every 30 days)</option>
+            <option value="60">Bi-monthly (Every 2 months)</option>
+            <option value="90">Quarterly (Every 3 months)</option>
+          </select>
+        </div>
+
+        <button id="add-task-btn" class="apply-btn full-width">Save Task</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast hidden">
+    <div class="toast-message" id="toast-title">Task Updated</div>
+    <div class="toast-sub" id="toast-sub">Done for today!</div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
