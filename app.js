@@ -59,10 +59,17 @@ function isTaskDueOnDate(task, dateObj) {
 
   if (target < start) return false;
 
+  const interval = Number(task.intervalDays);
+
+  // Non-recurring task: only due on exact start date
+  if (interval === 0) {
+    return target.getTime() === start.getTime();
+  }
+
   const diffTime = Math.abs(target - start);
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-  return diffDays % task.intervalDays === 0;
+  return diffDays % interval === 0;
 }
 
 function getTasksForDate(dateObj) {
@@ -155,6 +162,7 @@ function renderCalendar() {
 
 function getIntervalLabel(days) {
   switch (Number(days)) {
+    case 0: return "Once";
     case 1: return "Daily";
     case 7: return "Weekly";
     case 14: return "Bi-weekly";
@@ -196,7 +204,7 @@ function openEditModal(task) {
   const intervalSelect = document.getElementById("task-interval-select");
   const startInput = document.getElementById("task-start-input");
 
-  if (modalTitle) modalTitle.textContent = "Edit Recurring Task";
+  if (modalTitle) modalTitle.textContent = "Edit Task";
   if (editIdInput) editIdInput.value = task.id;
   if (titleInput) titleInput.value = task.title;
   if (intervalSelect) intervalSelect.value = task.intervalDays;
@@ -333,7 +341,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function openNewTaskModal() {
-    if (modalTitle) modalTitle.textContent = "New Recurring Task";
+    if (modalTitle) modalTitle.textContent = "New Task";
     if (editIdInput) editIdInput.value = "";
 
     const titleInput = document.getElementById("task-title-input");
