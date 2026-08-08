@@ -24,7 +24,7 @@ body {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   display: flex;
   justify-content: center;
-  padding: 1rem 0.5rem;
+  padding: 1rem 0.5rem 5rem 0.5rem; /* Extra bottom padding for FAB button */
 }
 
 .card {
@@ -169,9 +169,7 @@ body {
   transition: all 0.2s ease;
 }
 
-.nav-btn:hover {
-  background-color: var(--primary);
-}
+.nav-btn:hover { background-color: var(--primary); }
 
 .calendar-grid {
   display: grid;
@@ -205,9 +203,7 @@ body {
   padding: 0;
 }
 
-.day-tile.empty {
-  visibility: hidden;
-}
+.day-tile.empty { visibility: hidden; }
 
 .day-number { 
   font-size: 0.75rem; 
@@ -215,14 +211,8 @@ body {
   line-height: 1;
 }
 
-/* Indicators on calendar */
-.day-tile.has-task {
-  border-color: var(--accent);
-}
-
-.day-tile.has-task.all-completed {
-  border-color: var(--accent-green);
-}
+.day-tile.has-task { border-color: var(--accent); }
+.day-tile.has-task.all-completed { border-color: var(--accent-green); }
 
 .task-dots {
   display: flex;
@@ -237,34 +227,102 @@ body {
   background-color: var(--accent);
 }
 
-.day-tile.all-completed .task-dots .dot {
-  background-color: var(--accent-green);
-}
+.day-tile.all-completed .task-dots .dot { background-color: var(--accent-green); }
 
-/* Today Tile Highlight */
 .day-tile.is-today {
   border: 2px solid #ffffff !important;
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.6) !important;
   z-index: 2;
 }
 
-/* Form Controls */
-.form-group {
-  margin-bottom: 0.75rem;
+/* Floating Action Button (FAB) */
+.fab-btn {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--primary);
+  color: #ffffff;
+  border: none;
+  border-radius: 24px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 700;
+  font-size: 0.9rem;
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+  cursor: pointer;
+  z-index: 100;
+  transition: all 0.2s ease;
 }
 
-.form-group-inline {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
+.fab-btn:hover {
+  background-color: var(--primary-hover);
+  transform: translateX(-50%) scale(1.05);
+}
+
+/* Modal / Popup Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+  opacity: 1;
+  transition: opacity 0.2s ease;
+}
+
+.modal-overlay.hidden {
+  display: none;
+}
+
+.modal-card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  width: 90%;
+  max-width: 360px;
+  padding: 1.25rem;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.modal-header h3 {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.close-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-sub);
+  font-size: 1.4rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.close-btn:hover { color: var(--text-main); }
+
+/* Form Controls */
+.form-group {
+  margin-bottom: 0.85rem;
 }
 
 .form-label {
   display: block;
   font-size: 0.65rem;
   color: var(--text-sub);
-  margin-bottom: 0.2rem;
+  margin-bottom: 0.3rem;
   font-weight: 600;
   text-transform: uppercase;
 }
@@ -273,11 +331,16 @@ body {
   width: 100%;
   background-color: rgba(0, 0, 0, 0.25);
   border: 1px solid var(--border-color);
-  border-radius: 6px;
-  padding: 0.4rem 0.5rem;
+  border-radius: 8px;
+  padding: 0.5rem 0.6rem;
   color: var(--text-main);
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   outline: none;
+}
+
+.form-select {
+  cursor: pointer;
+  color-scheme: dark;
 }
 
 .apply-btn {
@@ -285,44 +348,16 @@ body {
   color: #ffffff;
   border: none;
   border-radius: 8px;
-  padding: 0.5rem 0.85rem;
+  padding: 0.6rem 0.85rem;
   font-weight: 700;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   cursor: pointer;
   transition: background-color 0.2s ease;
+  margin-top: 0.5rem;
 }
 
 .apply-btn:hover { background-color: var(--primary-hover); }
 .full-width { width: 100%; }
-
-/* Collapsible Section */
-.collapsible-section {
-  background-color: rgba(0, 0, 0, 0.2);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  margin-top: 1.25rem;
-  overflow: hidden;
-}
-
-.collapsible-summary {
-  padding: 0.6rem 0.85rem;
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: var(--text-sub);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  cursor: pointer;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  list-style: none;
-  user-select: none;
-}
-
-.collapsible-summary::-webkit-details-marker { display: none; }
-.collapsible-summary .chevron { font-size: 0.9rem; transition: transform 0.2s ease; }
-.collapsible-section[open] .chevron { transform: rotate(90deg); }
-.collapsible-content { padding: 0.5rem 0.85rem 0.75rem 0.85rem; }
 
 /* Toast */
 .toast {
