@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Task Scheduler</title>
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="card">
@@ -65,6 +65,19 @@
             <option value="60">Bi-monthly (Every 2 months)</option>
             <option value="90">Quarterly (Every 3 months)</option>
           </select>
+        </div>
+
+        <!-- 6-Color Picker -->
+        <div class="form-group">
+          <label class="form-label">Task Color</label>
+          <div class="color-picker-grid" id="color-picker">
+            <div class="color-option selected" data-color="#f97316" style="background-color: #f97316;"></div>
+            <div class="color-option" data-color="#3b82f6" style="background-color: #3b82f6;"></div>
+            <div class="color-option" data-color="#10b981" style="background-color: #10b981;"></div>
+            <div class="color-option" data-color="#a855f7" style="background-color: #a855f7;"></div>
+            <div class="color-option" data-color="#ec4899" style="background-color: #ec4899;"></div>
+            <div class="color-option" data-color="#eab308" style="background-color: #eab308;"></div>
+          </div>
         </div>
 
         <button id="add-task-btn" class="apply-btn full-width">Save Task</button>
