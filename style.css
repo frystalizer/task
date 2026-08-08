@@ -37,7 +37,9 @@ body {
   width: 100%;
   max-width: 380px;
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
-  overflow: hidden;
+  /* Make card flex column so sections share vertical space */
+  display: flex;
+  flex-direction: column;
 }
 
 .header {
@@ -48,7 +50,12 @@ body {
   align-items: center;
 }
 
-.section { margin-bottom: 1.25rem; }
+.section {
+  margin-bottom: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* Critical for nested scrollable flex children */
+}
 
 .section-header {
   display: flex;
@@ -92,9 +99,14 @@ body {
 }
 
 .scrollable-list {
-  max-height: 210px;
-  overflow-y: auto;
-  padding-right: 2px;
+  max-height: 180px; /* Adjust height limit as needed */
+  overflow-y: auto !important; /* Force vertical scrollbar */
+  overflow-x: hidden;
+  padding-right: 4px;
+}
+
+.scrollable-list {
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Custom scrollbar for sleek look */
