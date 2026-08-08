@@ -36,15 +36,17 @@
   <!-- Floating Add Task Button -->
   <button id="open-modal-btn" class="fab-btn">+ Add Task</button>
 
-  <!-- Add Task Popup Modal -->
+  <!-- Add/Edit Task Popup Modal -->
   <div id="task-modal" class="modal-overlay hidden">
     <div class="modal-card">
       <div class="modal-header">
-        <h3>New Recurring Task</h3>
+        <h3 id="modal-title">New Recurring Task</h3>
         <button id="close-modal-btn" class="close-btn">&times;</button>
       </div>
       
       <div class="modal-body">
+        <input type="hidden" id="editing-task-id" value="" />
+
         <div class="form-group">
           <label class="form-label">Task Description</label>
           <input type="text" id="task-title-input" class="form-input" placeholder="e.g. Water plants, Change filter" />
