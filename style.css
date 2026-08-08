@@ -38,12 +38,10 @@ body {
   max-width: 380px;
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
   
-  /* Fixed height layout */
-  height: 80vh;          /* Takes 80% of viewport height */
-  min-height: 550px;     /* Prevents collapsing on small screens */
-  max-height: 700px;
+  /* Use explicit fit-content/flex layout so card contains both parts naturally */
   display: flex;
   flex-direction: column;
+  max-height: 85vh; /* Prevents card from exceeding viewport */
 }
 
 .header {
@@ -54,11 +52,12 @@ body {
 }
 
 .section {
-  flex: 1;               /* Occupies top half of remaining space */
+  flex: 1 1 auto;        /* Grow/shrink freely */
   display: flex;
   flex-direction: column;
-  min-height: 0;         /* CRITICAL: Allows inner list to scroll instead of pushing layout */
+  min-height: 120px;     /* Minimum height for tasks area */
   margin-bottom: 0.75rem;
+  overflow: hidden;      /* Prevents task cards from overflowing into calendar */
 }
 
 .section-header {
@@ -104,8 +103,8 @@ body {
 }
 
 .scrollable-list {
-  flex: 1;               /* Fills all remaining space in top half */
-  min-height: 0;         /* Allows scrolling */
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto !important;
   overflow-x: hidden;
   padding-right: 4px;
@@ -197,14 +196,13 @@ body {
 
 /* Calendar Container & Grid */
 .calendar-container {
-  flex: 1;               /* Occupies bottom half of space */
+  flex-shrink: 0;        /* CRITICAL: Calendar size remains stable and won't get squished */
   display: flex;
   flex-direction: column;
   background-color: rgba(0, 0, 0, 0.25);
   border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 0.6rem 0.5rem;
-  min-height: 0;         /* Prevents expansion */
 }
 
 .calendar-header {
@@ -242,11 +240,8 @@ body {
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  grid-template-rows: auto repeat(6, 1fr);
   gap: 3px;
   width: 100%;
-  flex: 1;               /* Fits strictly into bottom half */
-  min-height: 0;
 }
 
 .weekday {
@@ -259,7 +254,8 @@ body {
 
 .day-tile {
   position: relative;
-  aspect-ratio: 1;
+  /* Replace strict aspect-ratio with padding-bottom trick or auto height for grid balance */
+  height: 36px;          /* Explicit compact tile height so 6 rows always fit */
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -272,7 +268,6 @@ body {
   padding: 0;
   transition: border-color 0.15s ease, background-color 0.15s ease;
 }
-
 .day-tile.clickable {
   cursor: pointer;
 }
