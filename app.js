@@ -8,6 +8,9 @@ let currentYear = now.getFullYear();
 let currentMonth = now.getMonth();
 let selectedColor = "#f97316";
 
+// Selected Date for Filter (null = default "Today & Overdue")
+let selectedDate = null;
+
 function loadTasks() {
   const saved = localStorage.getItem(STORAGE_TASKS_KEY);
   if (saved) {
@@ -117,10 +120,17 @@ function renderCalendar() {
     const dueTasks = getTasksForDate(dayDate);
 
     const tile = document.createElement("div");
-    tile.className = "day-tile";
+    tile.className = "day-tile clickable";
 
     if (currentYear === today.getFullYear() && currentMonth === today.getMonth() && day === today.getDate()) {
       tile.classList.add("is-today");
+    }
+
+    if (selectedDate && 
+        selectedDate.getFullYear() === currentYear && 
+        selectedDate.getMonth() === currentMonth && 
+        selectedDate.getDate() === day) {
+      tile.classList.add("is-selected");
     }
 
     const numSpan = document.createElement("span");
@@ -151,6 +161,21 @@ function renderCalendar() {
       
       tile.appendChild(indicator);
     }
+
+    // Handle date selection click
+    tile.addEventListener("click", () => {
+      if (selectedDate && 
+          selectedDate.getFullYear() === currentYear && 
+          selectedDate.getMonth() === currentMonth && 
+          selectedDate.getDate() === day) {
+        // Toggle off if already selected
+        selectedDate = null;
+      } else {
+        selectedDate = new Date(currentYear, currentMonth, day);
+      }
+      renderCalendar();
+      renderUpcomingTasks();
+    });
 
     gridEl.appendChild(tile);
   }
@@ -217,14 +242,15 @@ function openEditModal(task) {
 
   selectColorOption(task.color || "#f97316");
 
-  // Show the delete button when editing an existing task
   if (deleteBtn) deleteBtn.style.display = "inline-block";
-
   if (modalOverlay) modalOverlay.classList.remove("hidden");
 }
 
 function renderUpcomingTasks() {
   const container = document.getElementById("upcoming-tasks-list");
+  const headerLabel = document.getElementById("due-tasks-label");
+  const resetBtn = document.getElementById("reset-filter-btn");
+
   if (!container) return;
 
   container.innerHTML = "";
@@ -232,58 +258,86 @@ function renderUpcomingTasks() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  let minDaysBack = 0;
-  tasks.forEach(t => {
-    if (t.startDate) {
-      const [y, m, d] = t.startDate.split('-').map(Number);
-      const sDate = new Date(y, m - 1, d);
-      const diffDays = Math.floor((today - sDate) / (1000 * 60 * 60 * 24));
-      if (diffDays > minDaysBack) {
-        minDaysBack = diffDays;
-      }
-    }
-  });
-
   let taskList = [];
 
-  // 1. Gather overdue tasks from past days up to yesterday (uncompleted only)
-  for (let i = minDaysBack; i > 0; i--) {
-    const checkDate = new Date(today);
-    checkDate.setDate(today.getDate() - i);
+  if (selectedDate) {
+    // Mode A: Show tasks for selected calendar date
+    const formattedHeader = selectedDate.toLocaleDateString("en-US", { month: 'short', day: 'numeric', year: 'numeric' });
+    if (headerLabel) headerLabel.textContent = `Tasks for ${formattedHeader}`;
+    if (resetBtn) resetBtn.classList.remove("hidden");
 
-    const due = getTasksForDate(checkDate);
-    const dateKeyStr = formatDateKey(checkDate.getFullYear(), checkDate.getMonth(), checkDate.getDate());
+    const dateKeyStr = formatDateKey(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+    const dueOnDate = getTasksForDate(selectedDate);
 
-    due.forEach(task => {
+    dueOnDate.forEach(task => {
       const isCompleted = completedKeys.has(`${task.id}_${dateKeyStr}`);
-      if (!isCompleted) {
-        taskList.push({
-          task,
-          date: checkDate,
-          dateKeyStr,
-          isCompleted: false,
-          isOverdue: true
-        });
+      const isOverdue = selectedDate < today && !isCompleted;
+      taskList.push({
+        task,
+        date: selectedDate,
+        dateKeyStr,
+        isCompleted,
+        isOverdue
+      });
+    });
+
+  } else {
+    // Mode B: Default view (Overdue + Today)
+    if (headerLabel) headerLabel.textContent = "Due Tasks";
+    if (resetBtn) resetBtn.classList.add("hidden");
+
+    let minDaysBack = 0;
+    tasks.forEach(t => {
+      if (t.startDate) {
+        const [y, m, d] = t.startDate.split('-').map(Number);
+        const sDate = new Date(y, m - 1, d);
+        const diffDays = Math.floor((today - sDate) / (1000 * 60 * 60 * 24));
+        if (diffDays > minDaysBack) minDaysBack = diffDays;
       }
+    });
+
+    // 1. Gather overdue tasks
+    for (let i = minDaysBack; i > 0; i--) {
+      const checkDate = new Date(today);
+      checkDate.setDate(today.getDate() - i);
+
+      const due = getTasksForDate(checkDate);
+      const dateKeyStr = formatDateKey(checkDate.getFullYear(), checkDate.getMonth(), checkDate.getDate());
+
+      due.forEach(task => {
+        const isCompleted = completedKeys.has(`${task.id}_${dateKeyStr}`);
+        if (!isCompleted) {
+          taskList.push({
+            task,
+            date: checkDate,
+            dateKeyStr,
+            isCompleted: false,
+            isOverdue: true
+          });
+        }
+      });
+    }
+
+    // 2. Gather tasks due today
+    const todayDue = getTasksForDate(today);
+    const todayKeyStr = formatDateKey(today.getFullYear(), today.getMonth(), today.getDate());
+
+    todayDue.forEach(task => {
+      taskList.push({
+        task,
+        date: today,
+        dateKeyStr: todayKeyStr,
+        isCompleted: completedKeys.has(`${task.id}_${todayKeyStr}`),
+        isOverdue: false
+      });
     });
   }
 
-  // 2. Gather tasks due today
-  const todayDue = getTasksForDate(today);
-  const todayKeyStr = formatDateKey(today.getFullYear(), today.getMonth(), today.getDate());
-
-  todayDue.forEach(task => {
-    taskList.push({
-      task,
-      date: today,
-      dateKeyStr: todayKeyStr,
-      isCompleted: completedKeys.has(`${task.id}_${todayKeyStr}`),
-      isOverdue: false
-    });
-  });
-
   if (taskList.length === 0) {
-    container.innerHTML = `<div class="empty-state">No tasks scheduled for today or past due.</div>`;
+    const emptyMsg = selectedDate 
+      ? `No tasks scheduled for ${selectedDate.toLocaleDateString("en-US", { month: 'short', day: 'numeric' })}.` 
+      : `No tasks scheduled for today or past due.`;
+    container.innerHTML = `<div class="empty-state">${emptyMsg}</div>`;
     return;
   }
 
@@ -337,7 +391,6 @@ function deleteTask(id) {
   tasks = tasks.filter(t => t.id !== id);
   saveTasks(tasks);
 
-  // Clean up completion records tied to deleted task
   const newCompletedKeys = new Set();
   completedKeys.forEach(key => {
     if (!key.startsWith(`${id}_`)) {
@@ -381,6 +434,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const addBtn = document.getElementById("add-task-btn");
   const deleteBtn = document.getElementById("delete-task-btn");
   const colorPicker = document.getElementById("color-picker");
+  const resetFilterBtn = document.getElementById("reset-filter-btn");
 
   const startDateInput = document.getElementById("task-start-input");
   if (startDateInput) {
@@ -398,6 +452,14 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  if (resetFilterBtn) {
+    resetFilterBtn.addEventListener("click", () => {
+      selectedDate = null;
+      renderCalendar();
+      renderUpcomingTasks();
+    });
+  }
+
   function openNewTaskModal() {
     if (modalTitle) modalTitle.textContent = "New Task";
     if (editIdInput) editIdInput.value = "";
@@ -406,16 +468,17 @@ document.addEventListener("DOMContentLoaded", () => {
     if (titleInput) titleInput.value = "";
 
     const startInput = document.getElementById("task-start-input");
-    if (startInput) startInput.value = formatDateKey(now.getFullYear(), now.getMonth(), now.getDate());
+    if (startInput) {
+      const defaultDate = selectedDate || now;
+      startInput.value = formatDateKey(defaultDate.getFullYear(), defaultDate.getMonth(), defaultDate.getDate());
+    }
 
     const intervalSelect = document.getElementById("task-interval-select");
     if (intervalSelect) intervalSelect.value = "0";
 
     selectColorOption("#f97316");
 
-    // Hide the delete button when creating a new task
     if (deleteBtn) deleteBtn.style.display = "none";
-
     if (modalOverlay) modalOverlay.classList.remove("hidden");
   }
 

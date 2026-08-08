@@ -50,13 +50,38 @@ body {
 
 .section { margin-bottom: 1.25rem; }
 
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
 .label {
   font-size: 0.7rem;
   color: var(--text-sub);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  margin-bottom: 0.5rem;
   font-weight: 600;
+}
+
+.reset-filter-btn {
+  background: transparent;
+  border: none;
+  color: var(--primary-hover);
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+.reset-filter-btn:hover {
+  text-decoration: underline;
+}
+
+.reset-filter-btn.hidden {
+  display: none;
 }
 
 /* Upcoming / Current Tasks List */
@@ -132,7 +157,7 @@ body {
   padding: 0.5rem 0;
 }
 
-/* Calendar Container & Fixed Height Grid */
+/* Calendar Container & Grid */
 .calendar-container {
   background-color: rgba(0, 0, 0, 0.25);
   border: 1px solid var(--border-color);
@@ -203,6 +228,16 @@ body {
   border: 1px solid #1e293b;
   min-width: 0;
   padding: 0;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.day-tile.clickable {
+  cursor: pointer;
+}
+
+.day-tile.clickable:hover {
+  border-color: var(--primary-hover);
+  background-color: rgba(37, 99, 235, 0.1);
 }
 
 .day-tile.empty { visibility: hidden; }
@@ -214,6 +249,18 @@ body {
 }
 
 .day-tile.has-task { border-color: var(--border-color); }
+
+.day-tile.is-today {
+  border: 2px solid #ffffff !important;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.4) !important;
+  z-index: 2;
+}
+
+.day-tile.is-selected {
+  background-color: rgba(37, 99, 235, 0.35) !important;
+  border: 2px solid var(--primary-hover) !important;
+  z-index: 3;
+}
 
 .task-dots {
   display: flex;
@@ -229,12 +276,6 @@ body {
   height: 5px;
   border-radius: 50%;
   transition: background-color 0.2s ease;
-}
-
-.day-tile.is-today {
-  border: 2px solid #ffffff !important;
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.6) !important;
-  z-index: 2;
 }
 
 /* Color Picker Grid */
