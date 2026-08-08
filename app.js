@@ -7,7 +7,6 @@ const now = new Date();
 let currentYear = now.getFullYear();
 let currentMonth = now.getMonth();
 
-// Load or initialize default recurring tasks
 function loadTasks() {
   const saved = localStorage.getItem(STORAGE_TASKS_KEY);
   if (saved) {
@@ -17,7 +16,6 @@ function loadTasks() {
       console.error("Failed to parse tasks", e);
     }
   }
-  // Default sample tasks if empty
   return [
     { id: "1", title: "Water Plants", intervalDays: 3, startDate: formatDateKey(now.getFullYear(), now.getMonth(), 1) },
     { id: "2", title: "Backup Database", intervalDays: 7, startDate: formatDateKey(now.getFullYear(), now.getMonth(), 3) },
@@ -46,21 +44,18 @@ function saveCompletedKeys(completedSet) {
 }
 
 let tasks = loadTasks();
-let completedKeys = loadCompletedKeys(); // Format: `${taskId}_${YYYY-MM-DD}`
+let completedKeys = loadCompletedKeys();
 
-// Helper: Format YYYY-MM-DD
 function formatDateKey(year, month, day) {
   const m = String(month + 1).padStart(2, '0');
   const d = String(day).padStart(2, '0');
   return `${year}-${m}-${d}`;
 }
 
-// Calculate whether a task falls on a given date based on start date and interval
 function isTaskDueOnDate(task, dateObj) {
   const startParts = task.startDate.split('-').map(Number);
   const startDate = new Date(startParts[0], startParts[1] - 1, startParts[2]);
 
-  // Reset time portions for accurate date difference calculation
   const target = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
   const start = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
 
@@ -72,16 +67,13 @@ function isTaskDueOnDate(task, dateObj) {
   return diffDays % task.intervalDays === 0;
 }
 
-// Get all tasks due on a specific date
 function getTasksForDate(dateObj) {
   return tasks.filter(task => isTaskDueOnDate(task, dateObj));
 }
 
-// Render Calendar Grid
 function renderCalendar() {
   const gridEl = document.getElementById("calendar-grid");
   const titleEl = document.getElementById("calendar-title");
-  const prevBtn = document.getElementById("prev-month");
 
   if (!gridEl || !titleEl) return;
 
@@ -102,7 +94,6 @@ function renderCalendar() {
   const totalDays = new Date(currentYear, currentMonth + 1, 0).getDate();
   const padding = (firstDayIndex + 6) % 7; 
 
-  // Padding days before start of month
   for (let i = 0; i < padding; i++) {
     const padTile = document.createElement("div");
     padTile.className = "day-tile empty";
@@ -128,7 +119,6 @@ function renderCalendar() {
     numSpan.textContent = day;
     tile.appendChild(numSpan);
 
-    // Indicator for tasks
     if (dueTasks.length > 0) {
       tile.classList.add("has-task");
       const indicator = document.createElement("div");
@@ -151,7 +141,6 @@ function renderCalendar() {
     gridEl.appendChild(tile);
   }
 
-  // Ensure fixed 6-week grid padding
   const totalSlotsRendered = padding + totalDays;
   const trailingPadding = 42 - totalSlotsRendered;
   for (let i = 0; i < trailingPadding; i++) {
@@ -161,7 +150,18 @@ function renderCalendar() {
   }
 }
 
-// Render Upcoming Tasks for Current Week
+function getIntervalLabel(days) {
+  switch (Number(days)) {
+    case 1: return "Daily";
+    case 7: return "Weekly";
+    case 14: return "Bi-weekly";
+    case 30: return "Monthly";
+    case 60: return "Bi-monthly";
+    case 90: return "Quarterly";
+    default: return `Every ${days} days`;
+  }
+}
+
 function renderUpcomingTasks() {
   const container = document.getElementById("upcoming-tasks-list");
   if (!container) return;
@@ -170,7 +170,6 @@ function renderUpcomingTasks() {
 
   const today = new Date();
   const dayOfWeek = today.getDay();
-  // Compute Start of Week (Monday)
   const mondayOffset = (dayOfWeek + 6) % 7;
   const startOfWeek = new Date(today);
   startOfWeek.setDate(today.getDate() - mondayOffset);
@@ -208,7 +207,7 @@ function renderUpcomingTasks() {
     card.innerHTML = `
       <div class="task-info">
         <div class="task-title">${item.task.title}</div>
-        <div class="task-sub">${dateFormatted} · Every ${item.task.intervalDays} days</div>
+        <div class="task-sub">${dateFormatted} · ${getIntervalLabel(item.task.intervalDays)}</div>
       </div>
       <button class="check-btn">${item.isCompleted ? '✓' : ''}</button>
     `;
@@ -230,7 +229,6 @@ function renderUpcomingTasks() {
   });
 }
 
-// Toast System
 let toastTimeout;
 function showToast(title, sub) {
   const toast = document.getElementById("toast");
@@ -251,17 +249,34 @@ function showToast(title, sub) {
   }, 2000);
 }
 
-// Event Listeners
 document.addEventListener("DOMContentLoaded", () => {
   const prevBtn = document.getElementById("prev-month");
   const nextBtn = document.getElementById("next-month");
+  const openModalBtn = document.getElementById("open-modal-btn");
+  const closeModalBtn = document.getElementById("close-modal-btn");
+  const modalOverlay = document.getElementById("task-modal");
   const addBtn = document.getElementById("add-task-btn");
 
-  // Set default start date input to today
   const startDateInput = document.getElementById("task-start-input");
   if (startDateInput) {
     startDateInput.value = formatDateKey(now.getFullYear(), now.getMonth(), now.getDate());
   }
+
+  // Modal handlers
+  function openModal() {
+    modalOverlay.classList.remove("hidden");
+  }
+
+  function closeModal() {
+    modalOverlay.classList.add("hidden");
+  }
+
+  if (openModalBtn) openModalBtn.addEventListener("click", openModal);
+  if (closeModalBtn) closeModalBtn.addEventListener("click", closeModal);
+
+  modalOverlay.addEventListener("click", (e) => {
+    if (e.target === modalOverlay) closeModal();
+  });
 
   if (prevBtn) {
     prevBtn.addEventListener("click", () => {
@@ -290,14 +305,14 @@ document.addEventListener("DOMContentLoaded", () => {
   if (addBtn) {
     addBtn.addEventListener("click", () => {
       const titleInput = document.getElementById("task-title-input");
-      const intervalInput = document.getElementById("task-interval-input");
+      const intervalSelect = document.getElementById("task-interval-select");
       const startInput = document.getElementById("task-start-input");
 
       const title = titleInput.value.trim();
-      const interval = parseInt(intervalInput.value, 10);
+      const interval = parseInt(intervalSelect.value, 10);
       const start = startInput.value;
 
-      if (!title || isNaN(interval) || interval < 1 || !start) {
+      if (!title || isNaN(interval) || !start) {
         showToast("Error", "Please fill out all fields.");
         return;
       }
@@ -313,6 +328,7 @@ document.addEventListener("DOMContentLoaded", () => {
       saveTasks(tasks);
 
       titleInput.value = "";
+      closeModal();
       showToast("Added Task", title);
 
       renderUpcomingTasks();
