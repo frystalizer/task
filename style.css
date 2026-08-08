@@ -413,3 +413,26 @@ body {
 .toast-message { font-size: 0.85rem; font-weight: 700; color: #f8fafc; }
 .toast-sub { font-size: 0.75rem; color: var(--accent); font-weight: 600; }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* Task Card Action Buttons */
+.task-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.edit-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+  opacity: 0.7;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: opacity 0.2s ease, background-color 0.2s ease;
+}
+
+.edit-btn:hover {
+  opacity: 1;
+  background-color: rgba(255, 255, 255, 0.1);
+}
