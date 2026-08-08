@@ -52,28 +52,27 @@ function formatDateKey(year, month, day) {
 function isTaskDueOnDate(task, dateObj) {
   if (!task.startDate) return false;
 
-  // Extract year, month, day components directly to avoid timezone shift issues
-  const [startYear, startMonth, startDay] = task.startDate.split('-').map(Number);
-
-  // Universal midnight date objects for precise day calculations
-  const start = new Date(startYear, startMonth - 1, startDay);
-  const target = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
-
-  // Task cannot occur before its start date
-  if (target < start) return false;
+  // Format target date as YYYY-MM-DD for direct string comparison
+  const targetKey = formatDateKey(
+    dateObj.getFullYear(),
+    dateObj.getMonth(),
+    dateObj.getDate()
+  );
 
   const interval = Number(task.intervalDays);
 
-  // Non-recurring task ("Once"): match year, month, and day exactly
-  if (interval === 0) {
-    return (
-      target.getFullYear() === start.getFullYear() &&
-      target.getMonth() === start.getMonth() &&
-      target.getDate() === start.getDate()
-    );
+  // Non-recurring / "Once" task: Exact string date match
+  if (interval === 0 || isNaN(interval)) {
+    return task.startDate === targetKey;
   }
 
-  // Calculate whole-day difference between target date and start date
+  // Recurring tasks calculation
+  const [startYear, startMonth, startDay] = task.startDate.split('-').map(Number);
+  const start = new Date(startYear, startMonth - 1, startDay);
+  const target = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
+
+  if (target < start) return false;
+
   const diffTime = target.getTime() - start.getTime();
   const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
 
@@ -230,36 +229,70 @@ function renderUpcomingTasks() {
   container.innerHTML = "";
 
   const today = new Date();
-  const dayOfWeek = today.getDay();
-  const mondayOffset = (dayOfWeek + 6) % 7;
-  const startOfWeek = new Date(today);
-  startOfWeek.setDate(today.getDate() - mondayOffset);
+  today.setHours(0, 0, 0, 0);
 
-  let weekTasks = [];
+  // Find the earliest start date among all tasks to check for past uncompleted tasks
+  let minDaysBack = 0;
+  tasks.forEach(t => {
+    if (t.startDate) {
+      const [y, m, d] = t.startDate.split('-').map(Number);
+      const sDate = new Date(y, m - 1, d);
+      const diffDays = Math.floor((today - sDate) / (1000 * 60 * 60 * 24));
+      if (diffDays > minDaysBack) {
+        minDaysBack = diffDays;
+      }
+    }
+  });
 
-  for (let i = 0; i < 7; i++) {
-    const checkDate = new Date(startOfWeek);
-    checkDate.setDate(startOfWeek.getDate() + i);
+  let taskList = [];
+
+  // 1. Scan past days up to today: only include tasks that are NOT completed
+  for (let i = minDaysBack; i > 0; i--) {
+    const checkDate = new Date(today);
+    checkDate.setDate(today.getDate() - i);
 
     const due = getTasksForDate(checkDate);
     const dateKeyStr = formatDateKey(checkDate.getFullYear(), checkDate.getMonth(), checkDate.getDate());
 
     due.forEach(task => {
-      weekTasks.push({
+      const isCompleted = completedKeys.has(`${task.id}_${dateKeyStr}`);
+      if (!isCompleted) {
+        taskList.push({
+          task,
+          date: checkDate,
+          dateKeyStr,
+          isCompleted: false,
+          isOverdue: true
+        });
+      }
+    });
+  }
+
+  // 2. Scan today and the next 14 days: include all scheduled occurrences
+  for (let i = 0; i < 14; i++) {
+    const checkDate = new Date(today);
+    checkDate.setDate(today.getDate() + i);
+
+    const due = getTasksForDate(checkDate);
+    const dateKeyStr = formatDateKey(checkDate.getFullYear(), checkDate.getMonth(), checkDate.getDate());
+
+    due.forEach(task => {
+      taskList.push({
         task,
         date: checkDate,
         dateKeyStr,
-        isCompleted: completedKeys.has(`${task.id}_${dateKeyStr}`)
+        isCompleted: completedKeys.has(`${task.id}_${dateKeyStr}`),
+        isOverdue: false
       });
     });
   }
 
-  if (weekTasks.length === 0) {
-    container.innerHTML = `<div class="empty-state">No tasks scheduled for this week.</div>`;
+  if (taskList.length === 0) {
+    container.innerHTML = `<div class="empty-state">No tasks scheduled.</div>`;
     return;
   }
 
-  weekTasks.forEach(item => {
+  taskList.forEach(item => {
     const card = document.createElement("div");
     card.className = `task-card ${item.isCompleted ? 'completed' : ''}`;
     
@@ -267,11 +300,12 @@ function renderUpcomingTasks() {
     card.style.borderLeftColor = item.isCompleted ? 'var(--accent-green)' : taskColor;
 
     const dateFormatted = item.date.toLocaleDateString("en-US", { weekday: 'short', month: 'short', day: 'numeric' });
+    const overdueTag = item.isOverdue ? ' · <strong style="color: #ef4444;">Overdue</strong>' : '';
 
     card.innerHTML = `
       <div class="task-info">
         <div class="task-title">${item.task.title}</div>
-        <div class="task-sub">${dateFormatted} · ${getIntervalLabel(item.task.intervalDays)}</div>
+        <div class="task-sub">${dateFormatted} · ${getIntervalLabel(item.task.intervalDays)}${overdueTag}</div>
       </div>
       <div class="task-actions">
         <button class="edit-btn" title="Edit Task">✏️</button>
@@ -359,7 +393,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (startInput) startInput.value = formatDateKey(now.getFullYear(), now.getMonth(), now.getDate());
 
     const intervalSelect = document.getElementById("task-interval-select");
-    if (intervalSelect) intervalSelect.value = "7";
+    if (intervalSelect) intervalSelect.value = "0";
 
     selectColorOption("#f97316");
 
@@ -411,7 +445,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const editId = editIdInput ? editIdInput.value : "";
 
       const title = titleInput ? titleInput.value.trim() : "";
-      const interval = intervalSelect ? parseInt(intervalSelect.value, 10) : 7;
+      const interval = intervalSelect ? parseInt(intervalSelect.value, 10) : 0;
       const start = startInput ? startInput.value : "";
 
       if (!title || isNaN(interval) || !start) {
