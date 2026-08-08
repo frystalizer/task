@@ -12,9 +12,9 @@
       <span>📅 Task Scheduler</span>
     </div>
 
-    <!-- Upcoming Tasks Section -->
+    <!-- Upcoming / Current Tasks Section -->
     <div class="section">
-      <div class="label">Due This Week</div>
+      <div class="label">Due Tasks</div>
       <div id="upcoming-tasks-list" class="task-list">
         <!-- Rendered dynamically -->
       </div>
@@ -70,7 +70,7 @@
           </select>
         </div>
 
-        <!-- 6-Color Picker -->
+        <!-- Color Picker -->
         <div class="form-group">
           <label class="form-label">Task Color</label>
           <div class="color-picker-grid" id="color-picker">
@@ -83,7 +83,10 @@
           </div>
         </div>
 
-        <button id="add-task-btn" class="apply-btn full-width">Save Task</button>
+        <div class="modal-actions">
+          <button id="delete-task-btn" class="delete-btn" style="display: none;">Delete Task</button>
+          <button id="add-task-btn" class="apply-btn">Save Task</button>
+        </div>
       </div>
     </div>
   </div>

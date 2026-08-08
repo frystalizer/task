@@ -6,6 +6,8 @@
   
   --primary: #2563eb;
   --primary-hover: #3b82f6;
+  --danger: #ef4444;
+  --danger-hover: #dc2626;
   --tile-unchecked: #121826;
   --accent: #f97316;
   --accent-green: #10b981;
@@ -57,7 +59,7 @@ body {
   font-weight: 600;
 }
 
-/* Upcoming Tasks List */
+/* Upcoming / Current Tasks List */
 .task-list {
   display: flex;
   flex-direction: column;
@@ -370,6 +372,12 @@ body {
   color-scheme: dark;
 }
 
+.modal-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
 .apply-btn {
   background-color: var(--primary);
   color: #ffffff;
@@ -380,11 +388,28 @@ body {
   font-size: 0.85rem;
   cursor: pointer;
   transition: background-color 0.2s ease;
-  margin-top: 0.5rem;
+  flex: 1;
 }
 
 .apply-btn:hover { background-color: var(--primary-hover); }
-.full-width { width: 100%; }
+
+.delete-btn {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  border-radius: 8px;
+  padding: 0.6rem 0.85rem;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex: 1;
+}
+
+.delete-btn:hover {
+  background-color: var(--danger);
+  color: #ffffff;
+}
 
 /* Toast */
 .toast {

@@ -246,6 +246,7 @@ function renderUpcomingTasks() {
 
   let taskList = [];
 
+  // 1. Gather overdue tasks from past days up to yesterday (uncompleted only)
   for (let i = minDaysBack; i > 0; i--) {
     const checkDate = new Date(today);
     checkDate.setDate(today.getDate() - i);
@@ -267,26 +268,22 @@ function renderUpcomingTasks() {
     });
   }
 
-  for (let i = 0; i < 14; i++) {
-    const checkDate = new Date(today);
-    checkDate.setDate(today.getDate() + i);
+  // 2. Gather tasks due today
+  const todayDue = getTasksForDate(today);
+  const todayKeyStr = formatDateKey(today.getFullYear(), today.getMonth(), today.getDate());
 
-    const due = getTasksForDate(checkDate);
-    const dateKeyStr = formatDateKey(checkDate.getFullYear(), checkDate.getMonth(), checkDate.getDate());
-
-    due.forEach(task => {
-      taskList.push({
-        task,
-        date: checkDate,
-        dateKeyStr,
-        isCompleted: completedKeys.has(`${task.id}_${dateKeyStr}`),
-        isOverdue: false
-      });
+  todayDue.forEach(task => {
+    taskList.push({
+      task,
+      date: today,
+      dateKeyStr: todayKeyStr,
+      isCompleted: completedKeys.has(`${task.id}_${todayKeyStr}`),
+      isOverdue: false
     });
-  }
+  });
 
   if (taskList.length === 0) {
-    container.innerHTML = `<div class="empty-state">No tasks scheduled.</div>`;
+    container.innerHTML = `<div class="empty-state">No tasks scheduled for today or past due.</div>`;
     return;
   }
 
@@ -340,7 +337,7 @@ function deleteTask(id) {
   tasks = tasks.filter(t => t.id !== id);
   saveTasks(tasks);
 
-  // Clean up any completion records tied to this task ID
+  // Clean up completion records tied to deleted task
   const newCompletedKeys = new Set();
   completedKeys.forEach(key => {
     if (!key.startsWith(`${id}_`)) {
