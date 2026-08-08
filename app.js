@@ -165,6 +165,48 @@ function getIntervalLabel(days) {
   }
 }
 
+function selectColorOption(colorHex) {
+  selectedColor = colorHex;
+  const colorPicker = document.getElementById("color-picker");
+  if (!colorPicker) return;
+
+  const options = colorPicker.querySelectorAll(".color-option");
+  let matched = false;
+
+  options.forEach(el => {
+    if (el.dataset.color.toLowerCase() === colorHex.toLowerCase()) {
+      el.classList.add("selected");
+      matched = true;
+    } else {
+      el.classList.remove("selected");
+    }
+  });
+
+  if (!matched && options.length > 0) {
+    options[0].classList.add("selected");
+    selectedColor = options[0].dataset.color;
+  }
+}
+
+function openEditModal(task) {
+  const modalOverlay = document.getElementById("task-modal");
+  const modalTitle = document.getElementById("modal-title");
+  const editIdInput = document.getElementById("editing-task-id");
+  const titleInput = document.getElementById("task-title-input");
+  const intervalSelect = document.getElementById("task-interval-select");
+  const startInput = document.getElementById("task-start-input");
+
+  if (modalTitle) modalTitle.textContent = "Edit Recurring Task";
+  if (editIdInput) editIdInput.value = task.id;
+  if (titleInput) titleInput.value = task.title;
+  if (intervalSelect) intervalSelect.value = task.intervalDays;
+  if (startInput) startInput.value = task.startDate;
+
+  selectColorOption(task.color || "#f97316");
+
+  if (modalOverlay) modalOverlay.classList.remove("hidden");
+}
+
 function renderUpcomingTasks() {
   const container = document.getElementById("upcoming-tasks-list");
   if (!container) return;
@@ -215,8 +257,16 @@ function renderUpcomingTasks() {
         <div class="task-title">${item.task.title}</div>
         <div class="task-sub">${dateFormatted} · ${getIntervalLabel(item.task.intervalDays)}</div>
       </div>
-      <button class="check-btn">${item.isCompleted ? '✓' : ''}</button>
+      <div class="task-actions">
+        <button class="edit-btn" title="Edit Task">✏️</button>
+        <button class="check-btn">${item.isCompleted ? '✓' : ''}</button>
+      </div>
     `;
+
+    card.querySelector(".edit-btn").addEventListener("click", (e) => {
+      e.stopPropagation();
+      openEditModal(item.task);
+    });
 
     card.querySelector(".check-btn").addEventListener("click", () => {
       const completionKey = `${item.task.id}_${item.dateKeyStr}`;
@@ -261,6 +311,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const openModalBtn = document.getElementById("open-modal-btn");
   const closeModalBtn = document.getElementById("close-modal-btn");
   const modalOverlay = document.getElementById("task-modal");
+  const modalTitle = document.getElementById("modal-title");
+  const editIdInput = document.getElementById("editing-task-id");
   const addBtn = document.getElementById("add-task-btn");
   const colorPicker = document.getElementById("color-picker");
 
@@ -280,7 +332,21 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  function openModal() {
+  function openNewTaskModal() {
+    if (modalTitle) modalTitle.textContent = "New Recurring Task";
+    if (editIdInput) editIdInput.value = "";
+
+    const titleInput = document.getElementById("task-title-input");
+    if (titleInput) titleInput.value = "";
+
+    const startInput = document.getElementById("task-start-input");
+    if (startInput) startInput.value = formatDateKey(now.getFullYear(), now.getMonth(), now.getDate());
+
+    const intervalSelect = document.getElementById("task-interval-select");
+    if (intervalSelect) intervalSelect.value = "7";
+
+    selectColorOption("#f97316");
+
     if (modalOverlay) modalOverlay.classList.remove("hidden");
   }
 
@@ -288,7 +354,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (modalOverlay) modalOverlay.classList.add("hidden");
   }
 
-  if (openModalBtn) openModalBtn.addEventListener("click", openModal);
+  if (openModalBtn) openModalBtn.addEventListener("click", openNewTaskModal);
   if (closeModalBtn) closeModalBtn.addEventListener("click", closeModal);
 
   if (modalOverlay) {
@@ -326,6 +392,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const titleInput = document.getElementById("task-title-input");
       const intervalSelect = document.getElementById("task-interval-select");
       const startInput = document.getElementById("task-start-input");
+      const editId = editIdInput ? editIdInput.value : "";
 
       const title = titleInput ? titleInput.value.trim() : "";
       const interval = intervalSelect ? parseInt(intervalSelect.value, 10) : 7;
@@ -336,20 +403,36 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      const newTask = {
-        id: Date.now().toString(),
-        title,
-        intervalDays: interval,
-        startDate: start,
-        color: selectedColor
-      };
-
-      tasks.push(newTask);
-      saveTasks(tasks);
+      if (editId) {
+        // Edit existing task
+        const taskIdx = tasks.findIndex(t => t.id === editId);
+        if (taskIdx !== -1) {
+          tasks[taskIdx] = {
+            ...tasks[taskIdx],
+            title,
+            intervalDays: interval,
+            startDate: start,
+            color: selectedColor
+          };
+          saveTasks(tasks);
+          showToast("Task Updated", title);
+        }
+      } else {
+        // Create new task
+        const newTask = {
+          id: Date.now().toString(),
+          title,
+          intervalDays: interval,
+          startDate: start,
+          color: selectedColor
+        };
+        tasks.push(newTask);
+        saveTasks(tasks);
+        showToast("Added Task", title);
+      }
 
       if (titleInput) titleInput.value = "";
       closeModal();
-      showToast("Added Task", title);
 
       renderUpcomingTasks();
       renderCalendar();
