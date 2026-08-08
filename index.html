@@ -3,40 +3,41 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Task Scheduler</title>
+  <title>Task Scheduler & Calendar</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="card">
-    <div class="header">
-      <span>📅 Task Scheduler</span>
-    </div>
+  <div class="app-container">
+    <!-- Header Section -->
+    <header class="app-header">
+      <div class="header-content">
+        <h1>Task Scheduler</h1>
+        <p class="subtitle">Track recurring habits & scheduled events</p>
+      </div>
+      <button id="open-modal-btn" class="btn btn-primary">+ New Task</button>
+    </header>
 
-    <!-- Upcoming Tasks Section -->
-    <div class="section">
-      <div class="label">Due This Week</div>
-      <div id="upcoming-tasks-list" class="task-list">
-        <!-- Rendered dynamically -->
-      </div>
-    </div>
+    <!-- Main Grid Content -->
+    <main class="main-content">
+      <!-- Calendar View -->
+      <section class="calendar-section">
+        <div class="calendar-header">
+          <button id="prev-month" class="icon-btn">&lt;</button>
+          <h2 id="calendar-title">Month Year</h2>
+          <button id="next-month" class="icon-btn">&gt;</button>
+        </div>
+        <div id="calendar-grid" class="calendar-grid"></div>
+      </section>
 
-    <!-- Calendar Section -->
-    <div class="calendar-container">
-      <div class="calendar-header">
-        <button id="prev-month" class="nav-btn">&lt;</button>
-        <div id="calendar-title" class="calendar-title">Month Year</div>
-        <button id="next-month" class="nav-btn">&gt;</button>
-      </div>
-      <div id="calendar-grid" class="calendar-grid">
-        <!-- Calendar slots rendered dynamically -->
-      </div>
-    </div>
+      <!-- Upcoming Tasks Sidebar -->
+      <section class="upcoming-section">
+        <h2>Tasks</h2>
+        <div id="upcoming-tasks-list" class="tasks-list"></div>
+      </section>
+    </main>
   </div>
 
-  <!-- Floating Add Task Button -->
-  <button id="open-modal-btn" class="fab-btn">+ Add Task</button>
-
-  <!-- Add/Edit Task Popup Modal -->
+  <!-- Task Creation / Edit Modal -->
   <div id="task-modal" class="modal-overlay hidden">
     <div class="modal-card">
       <div class="modal-header">
@@ -48,53 +49,56 @@
         <input type="hidden" id="editing-task-id" value="" />
 
         <div class="form-group">
-          <label class="form-label">Task Description</label>
-          <input type="text" id="task-title-input" class="form-input" placeholder="e.g. Water plants, Change filter" />
+          <label for="task-title-input">Task Title</label>
+          <input 
+            type="text" 
+            id="task-title-input" 
+            placeholder="e.g., Water Plants" 
+            autocomplete="off" 
+          />
         </div>
 
         <div class="form-group">
-          <label class="form-label">Start Date</label>
-          <input type="date" id="task-start-input" class="form-input" />
+          <label for="task-start-input">Start Date</label>
+          <input type="date" id="task-start-input" />
         </div>
 
         <div class="form-group">
-          <label class="form-label">Repeat Interval</label>
-          <select id="task-interval-select" class="form-input form-select">
-            <option value="0">Once (No repeat)</option>
+          <label for="task-interval-select">Frequency</label>
+          <select id="task-interval-select">
+            <option value="0">Once (Non-recurring)</option>
             <option value="1">Daily</option>
-            <option value="7" selected>Weekly</option>
-            <option value="14">Bi-weekly (Every 2 weeks)</option>
-            <option value="30">Monthly (Every 30 days)</option>
-            <option value="60">Bi-monthly (Every 2 months)</option>
-            <option value="90">Quarterly (Every 3 months)</option>
+            <option value="7">Weekly</option>
+            <option value="14">Bi-weekly</option>
+            <option value="30">Monthly</option>
+            <option value="60">Bi-monthly</option>
+            <option value="90">Quarterly</option>
           </select>
         </div>
 
-        <!-- 6-Color Picker -->
         <div class="form-group">
-          <label class="form-label">Task Color</label>
-          <div class="color-picker-grid" id="color-picker">
-            <div class="color-option selected" data-color="#f97316" style="background-color: #f97316;"></div>
-            <div class="color-option" data-color="#3b82f6" style="background-color: #3b82f6;"></div>
-            <div class="color-option" data-color="#10b981" style="background-color: #10b981;"></div>
-            <div class="color-option" data-color="#a855f7" style="background-color: #a855f7;"></div>
-            <div class="color-option" data-color="#ec4899" style="background-color: #ec4899;"></div>
-            <div class="color-option" data-color="#eab308" style="background-color: #eab308;"></div>
+          <label>Color Label</label>
+          <div id="color-picker" class="color-picker">
+            <span class="color-option selected" data-color="#f97316" style="background-color: #f97316;"></span>
+            <span class="color-option" data-color="#3b82f6" style="background-color: #3b82f6;"></span>
+            <span class="color-option" data-color="#8b5cf6" style="background-color: #8b5cf6;"></span>
+            <span class="color-option" data-color="#ec4899" style="background-color: #ec4899;"></span>
+            <span class="color-option" data-color="#14b8a6" style="background-color: #14b8a6;"></span>
           </div>
         </div>
+      </div>
 
-        <div class="modal-actions">
-          <button id="delete-task-btn" class="btn btn-danger" style="display: none;">Delete</button>
-          <button id="add-task-btn" class="btn btn-primary">Save Task</button>
-        </div>
+      <div class="modal-footer">
+        <button id="delete-task-btn" class="btn btn-danger" style="display: none;">Delete</button>
+        <button id="add-task-btn" class="btn btn-primary">Save Task</button>
       </div>
     </div>
   </div>
 
   <!-- Toast Notification -->
   <div id="toast" class="toast hidden">
-    <div class="toast-message" id="toast-title">Task Updated</div>
-    <div class="toast-sub" id="toast-sub">Done for today!</div>
+    <div id="toast-title" class="toast-title"></div>
+    <div id="toast-sub" class="toast-sub"></div>
   </div>
 
   <script src="app.js"></script>
