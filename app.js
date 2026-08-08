@@ -51,23 +51,31 @@ function formatDateKey(year, month, day) {
 
 function isTaskDueOnDate(task, dateObj) {
   if (!task.startDate) return false;
-  const startParts = task.startDate.split('-').map(Number);
-  const startDate = new Date(startParts[0], startParts[1] - 1, startParts[2]);
 
+  // Extract year, month, day components directly to avoid timezone shift issues
+  const [startYear, startMonth, startDay] = task.startDate.split('-').map(Number);
+
+  // Universal midnight date objects for precise day calculations
+  const start = new Date(startYear, startMonth - 1, startDay);
   const target = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
-  const start = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
 
+  // Task cannot occur before its start date
   if (target < start) return false;
 
   const interval = Number(task.intervalDays);
 
-  // Non-recurring task: only due on exact start date
+  // Non-recurring task ("Once"): match year, month, and day exactly
   if (interval === 0) {
-    return target.getTime() === start.getTime();
+    return (
+      target.getFullYear() === start.getFullYear() &&
+      target.getMonth() === start.getMonth() &&
+      target.getDate() === start.getDate()
+    );
   }
 
-  const diffTime = Math.abs(target - start);
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  // Calculate whole-day difference between target date and start date
+  const diffTime = target.getTime() - start.getTime();
+  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
 
   return diffDays % interval === 0;
 }
