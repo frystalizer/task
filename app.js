@@ -95,6 +95,7 @@ function renderCalendar() {
   const monthName = dateObj.toLocaleString('en-US', { month: 'long' });
   titleEl.textContent = `${monthName} ${currentYear}`;
 
+  // Weekday Headers (Monday to Sunday)
   ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].forEach(d => {
     const div = document.createElement("div");
     div.className = "weekday";
@@ -102,10 +103,13 @@ function renderCalendar() {
     gridEl.appendChild(div);
   });
 
-  const firstDayIndex = new Date(currentYear, currentMonth, 1).getDay();
-  const totalDays = new Date(currentYear, currentMonth + 1, 0).getDate();
-  const padding = (firstDayIndex + 6) % 7; 
+  // Convert Sunday-first (0-6) to Monday-first (0-6)
+  let firstDayIndex = new Date(currentYear, currentMonth, 1).getDay();
+  const padding = (firstDayIndex === 0) ? 6 : firstDayIndex - 1;
 
+  const totalDays = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+  // Render Padding Tiles
   for (let i = 0; i < padding; i++) {
     const padTile = document.createElement("div");
     padTile.className = "day-tile empty";
@@ -114,6 +118,7 @@ function renderCalendar() {
 
   const today = new Date();
 
+  // Render Day Tiles
   for (let day = 1; day <= totalDays; day++) {
     const dayDate = new Date(currentYear, currentMonth, day);
     const dateKeyStr = formatDateKey(currentYear, currentMonth, day);
@@ -122,10 +127,12 @@ function renderCalendar() {
     const tile = document.createElement("div");
     tile.className = "day-tile clickable";
 
+    // Highlight today
     if (currentYear === today.getFullYear() && currentMonth === today.getMonth() && day === today.getDate()) {
       tile.classList.add("is-today");
     }
 
+    // Highlight selected date
     if (selectedDate && 
         selectedDate.getFullYear() === currentYear && 
         selectedDate.getMonth() === currentMonth && 
@@ -162,14 +169,13 @@ function renderCalendar() {
       tile.appendChild(indicator);
     }
 
-    // Handle date selection click
+    // Click Event Listener
     tile.addEventListener("click", () => {
       if (selectedDate && 
           selectedDate.getFullYear() === currentYear && 
           selectedDate.getMonth() === currentMonth && 
           selectedDate.getDate() === day) {
-        // Toggle off if already selected
-        selectedDate = null;
+        selectedDate = null; // Unselect if clicked again
       } else {
         selectedDate = new Date(currentYear, currentMonth, day);
       }
@@ -180,8 +186,9 @@ function renderCalendar() {
     gridEl.appendChild(tile);
   }
 
+  // Trailing Padding
   const totalSlotsRendered = padding + totalDays;
-  const trailingPadding = 42 - totalSlotsRendered;
+  const trailingPadding = (42 - totalSlotsRendered) % 7;
   for (let i = 0; i < trailingPadding; i++) {
     const padTile = document.createElement("div");
     padTile.className = "day-tile empty";
