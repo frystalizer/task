@@ -17,7 +17,7 @@ function loadTasks() {
       console.error("Failed to parse tasks", e);
     }
   }
-  return []; // Removed all sample tasks
+  return [];
 }
 
 function saveTasks(tasks) {
@@ -50,6 +50,7 @@ function formatDateKey(year, month, day) {
 }
 
 function isTaskDueOnDate(task, dateObj) {
+  if (!task.startDate) return false;
   const startParts = task.startDate.split('-').map(Number);
   const startDate = new Date(startParts[0], startParts[1] - 1, startParts[2]);
 
@@ -131,7 +132,6 @@ function renderCalendar() {
         tile.classList.add("all-completed");
       }
 
-      // Render a distinct dot with task's color for each task due on this date
       indicator.innerHTML = dueTasks.map(task => {
         const isDone = completedKeys.has(`${task.id}_${dateKeyStr}`);
         const dotColor = isDone ? 'var(--accent-green)' : (task.color || 'var(--accent)');
@@ -205,7 +205,6 @@ function renderUpcomingTasks() {
     const card = document.createElement("div");
     card.className = `task-card ${item.isCompleted ? 'completed' : ''}`;
     
-    // Set left accent border to task color if not completed
     const taskColor = item.task.color || 'var(--accent)';
     card.style.borderLeftColor = item.isCompleted ? 'var(--accent-green)' : taskColor;
 
@@ -270,7 +269,6 @@ document.addEventListener("DOMContentLoaded", () => {
     startDateInput.value = formatDateKey(now.getFullYear(), now.getMonth(), now.getDate());
   }
 
-  // Color picker interaction
   if (colorPicker) {
     colorPicker.addEventListener("click", (e) => {
       const option = e.target.closest(".color-option");
@@ -282,21 +280,22 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Modal handlers
   function openModal() {
-    modalOverlay.classList.remove("hidden");
+    if (modalOverlay) modalOverlay.classList.remove("hidden");
   }
 
   function closeModal() {
-    modalOverlay.classList.add("hidden");
+    if (modalOverlay) modalOverlay.classList.add("hidden");
   }
 
   if (openModalBtn) openModalBtn.addEventListener("click", openModal);
   if (closeModalBtn) closeModalBtn.addEventListener("click", closeModal);
 
-  modalOverlay.addEventListener("click", (e) => {
-    if (e.target === modalOverlay) closeModal();
-  });
+  if (modalOverlay) {
+    modalOverlay.addEventListener("click", (e) => {
+      if (e.target === modalOverlay) closeModal();
+    });
+  }
 
   if (prevBtn) {
     prevBtn.addEventListener("click", () => {
@@ -328,9 +327,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const intervalSelect = document.getElementById("task-interval-select");
       const startInput = document.getElementById("task-start-input");
 
-      const title = titleInput.value.trim();
-      const interval = parseInt(intervalSelect.value, 10);
-      const start = startInput.value;
+      const title = titleInput ? titleInput.value.trim() : "";
+      const interval = intervalSelect ? parseInt(intervalSelect.value, 10) : 7;
+      const start = startInput ? startInput.value : "";
 
       if (!title || isNaN(interval) || !start) {
         showToast("Error", "Please fill out all fields.");
@@ -348,7 +347,7 @@ document.addEventListener("DOMContentLoaded", () => {
       tasks.push(newTask);
       saveTasks(tasks);
 
-      titleInput.value = "";
+      if (titleInput) titleInput.value = "";
       closeModal();
       showToast("Added Task", title);
 
