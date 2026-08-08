@@ -250,12 +250,15 @@ body {
   font-weight: 700;
   text-align: center;
   padding-bottom: 2px;
+  
+  /* Prevent text selection and blinking cursor on click */
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .day-tile {
   position: relative;
-  /* Replace strict aspect-ratio with padding-bottom trick or auto height for grid balance */
-  height: 36px;          /* Explicit compact tile height so 6 rows always fit */
+  height: 36px;
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -267,7 +270,12 @@ body {
   min-width: 0;
   padding: 0;
   transition: border-color 0.15s ease, background-color 0.15s ease;
+
+  /* Prevent text selection on calendar numbers */
+  user-select: none;
+  -webkit-user-select: none;
 }
+
 .day-tile.clickable {
   cursor: pointer;
 }
