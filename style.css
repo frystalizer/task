@@ -84,11 +84,29 @@ body {
   display: none;
 }
 
-/* Upcoming / Current Tasks List */
+/* Scrollable Upcoming / Current Tasks List */
 .task-list {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+}
+
+.scrollable-list {
+  max-height: 210px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+/* Custom scrollbar for sleek look */
+.scrollable-list::-webkit-scrollbar {
+  width: 4px;
+}
+.scrollable-list::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+}
+.scrollable-list::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
 }
 
 .task-card {
@@ -101,6 +119,7 @@ body {
   justify-content: space-between;
   align-items: center;
   transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 
 .task-card.completed {

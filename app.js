@@ -95,7 +95,6 @@ function renderCalendar() {
   const monthName = dateObj.toLocaleString('en-US', { month: 'long' });
   titleEl.textContent = `${monthName} ${currentYear}`;
 
-  // Weekday Headers (Monday to Sunday)
   ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].forEach(d => {
     const div = document.createElement("div");
     div.className = "weekday";
@@ -103,13 +102,10 @@ function renderCalendar() {
     gridEl.appendChild(div);
   });
 
-  // Convert Sunday-first (0-6) to Monday-first (0-6)
   let firstDayIndex = new Date(currentYear, currentMonth, 1).getDay();
   const padding = (firstDayIndex === 0) ? 6 : firstDayIndex - 1;
-
   const totalDays = new Date(currentYear, currentMonth + 1, 0).getDate();
 
-  // Render Padding Tiles
   for (let i = 0; i < padding; i++) {
     const padTile = document.createElement("div");
     padTile.className = "day-tile empty";
@@ -118,7 +114,6 @@ function renderCalendar() {
 
   const today = new Date();
 
-  // Render Day Tiles
   for (let day = 1; day <= totalDays; day++) {
     const dayDate = new Date(currentYear, currentMonth, day);
     const dateKeyStr = formatDateKey(currentYear, currentMonth, day);
@@ -127,12 +122,10 @@ function renderCalendar() {
     const tile = document.createElement("div");
     tile.className = "day-tile clickable";
 
-    // Highlight today
     if (currentYear === today.getFullYear() && currentMonth === today.getMonth() && day === today.getDate()) {
       tile.classList.add("is-today");
     }
 
-    // Highlight selected date
     if (selectedDate && 
         selectedDate.getFullYear() === currentYear && 
         selectedDate.getMonth() === currentMonth && 
@@ -169,13 +162,12 @@ function renderCalendar() {
       tile.appendChild(indicator);
     }
 
-    // Click Event Listener
     tile.addEventListener("click", () => {
       if (selectedDate && 
           selectedDate.getFullYear() === currentYear && 
           selectedDate.getMonth() === currentMonth && 
           selectedDate.getDate() === day) {
-        selectedDate = null; // Unselect if clicked again
+        selectedDate = null;
       } else {
         selectedDate = new Date(currentYear, currentMonth, day);
       }
@@ -186,7 +178,6 @@ function renderCalendar() {
     gridEl.appendChild(tile);
   }
 
-  // Trailing Padding
   const totalSlotsRendered = padding + totalDays;
   const trailingPadding = (42 - totalSlotsRendered) % 7;
   for (let i = 0; i < trailingPadding; i++) {
@@ -268,7 +259,6 @@ function renderUpcomingTasks() {
   let taskList = [];
 
   if (selectedDate) {
-    // Mode A: Show tasks for selected calendar date
     const formattedHeader = selectedDate.toLocaleDateString("en-US", { month: 'short', day: 'numeric', year: 'numeric' });
     if (headerLabel) headerLabel.textContent = `Tasks for ${formattedHeader}`;
     if (resetBtn) resetBtn.classList.remove("hidden");
@@ -289,7 +279,6 @@ function renderUpcomingTasks() {
     });
 
   } else {
-    // Mode B: Default view (Overdue + Today)
     if (headerLabel) headerLabel.textContent = "Due Tasks";
     if (resetBtn) resetBtn.classList.add("hidden");
 
@@ -303,7 +292,6 @@ function renderUpcomingTasks() {
       }
     });
 
-    // 1. Gather overdue tasks
     for (let i = minDaysBack; i > 0; i--) {
       const checkDate = new Date(today);
       checkDate.setDate(today.getDate() - i);
@@ -325,7 +313,6 @@ function renderUpcomingTasks() {
       });
     }
 
-    // 2. Gather tasks due today
     const todayDue = getTasksForDate(today);
     const todayKeyStr = formatDateKey(today.getFullYear(), today.getMonth(), today.getDate());
 
