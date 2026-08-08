@@ -52,7 +52,6 @@ function formatDateKey(year, month, day) {
 function isTaskDueOnDate(task, dateObj) {
   if (!task.startDate) return false;
 
-  // Format target date as YYYY-MM-DD for direct string comparison
   const targetKey = formatDateKey(
     dateObj.getFullYear(),
     dateObj.getMonth(),
@@ -61,12 +60,10 @@ function isTaskDueOnDate(task, dateObj) {
 
   const interval = Number(task.intervalDays);
 
-  // Non-recurring / "Once" task: Exact string date match
   if (interval === 0 || isNaN(interval)) {
     return task.startDate === targetKey;
   }
 
-  // Recurring tasks calculation
   const [startYear, startMonth, startDay] = task.startDate.split('-').map(Number);
   const start = new Date(startYear, startMonth - 1, startDay);
   const target = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
@@ -210,6 +207,7 @@ function openEditModal(task) {
   const titleInput = document.getElementById("task-title-input");
   const intervalSelect = document.getElementById("task-interval-select");
   const startInput = document.getElementById("task-start-input");
+  const deleteBtn = document.getElementById("delete-task-btn");
 
   if (modalTitle) modalTitle.textContent = "Edit Task";
   if (editIdInput) editIdInput.value = task.id;
@@ -218,6 +216,9 @@ function openEditModal(task) {
   if (startInput) startInput.value = task.startDate;
 
   selectColorOption(task.color || "#f97316");
+
+  // Show the delete button when editing an existing task
+  if (deleteBtn) deleteBtn.style.display = "inline-block";
 
   if (modalOverlay) modalOverlay.classList.remove("hidden");
 }
@@ -231,7 +232,6 @@ function renderUpcomingTasks() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  // Find the earliest start date among all tasks to check for past uncompleted tasks
   let minDaysBack = 0;
   tasks.forEach(t => {
     if (t.startDate) {
@@ -246,7 +246,6 @@ function renderUpcomingTasks() {
 
   let taskList = [];
 
-  // 1. Scan past days up to today: only include tasks that are NOT completed
   for (let i = minDaysBack; i > 0; i--) {
     const checkDate = new Date(today);
     checkDate.setDate(today.getDate() - i);
@@ -268,7 +267,6 @@ function renderUpcomingTasks() {
     });
   }
 
-  // 2. Scan today and the next 14 days: include all scheduled occurrences
   for (let i = 0; i < 14; i++) {
     const checkDate = new Date(today);
     checkDate.setDate(today.getDate() + i);
@@ -335,6 +333,26 @@ function renderUpcomingTasks() {
   });
 }
 
+function deleteTask(id) {
+  const taskToDelete = tasks.find(t => t.id === id);
+  if (!taskToDelete) return;
+
+  tasks = tasks.filter(t => t.id !== id);
+  saveTasks(tasks);
+
+  // Clean up any completion records tied to this task ID
+  const newCompletedKeys = new Set();
+  completedKeys.forEach(key => {
+    if (!key.startsWith(`${id}_`)) {
+      newCompletedKeys.add(key);
+    }
+  });
+  completedKeys = newCompletedKeys;
+  saveCompletedKeys(completedKeys);
+
+  showToast("Task Deleted", taskToDelete.title);
+}
+
 let toastTimeout;
 function showToast(title, sub) {
   const toast = document.getElementById("toast");
@@ -364,6 +382,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const modalTitle = document.getElementById("modal-title");
   const editIdInput = document.getElementById("editing-task-id");
   const addBtn = document.getElementById("add-task-btn");
+  const deleteBtn = document.getElementById("delete-task-btn");
   const colorPicker = document.getElementById("color-picker");
 
   const startDateInput = document.getElementById("task-start-input");
@@ -397,6 +416,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     selectColorOption("#f97316");
 
+    // Hide the delete button when creating a new task
+    if (deleteBtn) deleteBtn.style.display = "none";
+
     if (modalOverlay) modalOverlay.classList.remove("hidden");
   }
 
@@ -410,6 +432,18 @@ document.addEventListener("DOMContentLoaded", () => {
   if (modalOverlay) {
     modalOverlay.addEventListener("click", (e) => {
       if (e.target === modalOverlay) closeModal();
+    });
+  }
+
+  if (deleteBtn) {
+    deleteBtn.addEventListener("click", () => {
+      const editId = editIdInput ? editIdInput.value : "";
+      if (editId) {
+        deleteTask(editId);
+        closeModal();
+        renderUpcomingTasks();
+        renderCalendar();
+      }
     });
   }
 
@@ -454,7 +488,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       if (editId) {
-        // Edit existing task
         const taskIdx = tasks.findIndex(t => t.id === editId);
         if (taskIdx !== -1) {
           tasks[taskIdx] = {
@@ -468,7 +501,6 @@ document.addEventListener("DOMContentLoaded", () => {
           showToast("Task Updated", title);
         }
       } else {
-        // Create new task
         const newTask = {
           id: Date.now().toString(),
           title,
