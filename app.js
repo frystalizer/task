@@ -6,6 +6,7 @@ const STORAGE_COMPLETED_KEY = "scheduler_completed_keys";
 const now = new Date();
 let currentYear = now.getFullYear();
 let currentMonth = now.getMonth();
+let selectedColor = "#f97316";
 
 function loadTasks() {
   const saved = localStorage.getItem(STORAGE_TASKS_KEY);
@@ -16,11 +17,7 @@ function loadTasks() {
       console.error("Failed to parse tasks", e);
     }
   }
-  return [
-    { id: "1", title: "Water Plants", intervalDays: 3, startDate: formatDateKey(now.getFullYear(), now.getMonth(), 1) },
-    { id: "2", title: "Backup Database", intervalDays: 7, startDate: formatDateKey(now.getFullYear(), now.getMonth(), 3) },
-    { id: "3", title: "Monthly Review", intervalDays: 30, startDate: formatDateKey(now.getFullYear(), now.getMonth(), 5) }
-  ];
+  return []; // Removed all sample tasks
 }
 
 function saveTasks(tasks) {
@@ -134,7 +131,13 @@ function renderCalendar() {
         tile.classList.add("all-completed");
       }
 
-      indicator.innerHTML = dueTasks.map(() => `<span class="dot"></span>`).join('');
+      // Render a distinct dot with task's color for each task due on this date
+      indicator.innerHTML = dueTasks.map(task => {
+        const isDone = completedKeys.has(`${task.id}_${dateKeyStr}`);
+        const dotColor = isDone ? 'var(--accent-green)' : (task.color || 'var(--accent)');
+        return `<span class="dot" style="background-color: ${dotColor};"></span>`;
+      }).join('');
+      
       tile.appendChild(indicator);
     }
 
@@ -201,6 +204,10 @@ function renderUpcomingTasks() {
   weekTasks.forEach(item => {
     const card = document.createElement("div");
     card.className = `task-card ${item.isCompleted ? 'completed' : ''}`;
+    
+    // Set left accent border to task color if not completed
+    const taskColor = item.task.color || 'var(--accent)';
+    card.style.borderLeftColor = item.isCompleted ? 'var(--accent-green)' : taskColor;
 
     const dateFormatted = item.date.toLocaleDateString("en-US", { weekday: 'short', month: 'short', day: 'numeric' });
 
@@ -256,10 +263,23 @@ document.addEventListener("DOMContentLoaded", () => {
   const closeModalBtn = document.getElementById("close-modal-btn");
   const modalOverlay = document.getElementById("task-modal");
   const addBtn = document.getElementById("add-task-btn");
+  const colorPicker = document.getElementById("color-picker");
 
   const startDateInput = document.getElementById("task-start-input");
   if (startDateInput) {
     startDateInput.value = formatDateKey(now.getFullYear(), now.getMonth(), now.getDate());
+  }
+
+  // Color picker interaction
+  if (colorPicker) {
+    colorPicker.addEventListener("click", (e) => {
+      const option = e.target.closest(".color-option");
+      if (!option) return;
+
+      colorPicker.querySelectorAll(".color-option").forEach(el => el.classList.remove("selected"));
+      option.classList.add("selected");
+      selectedColor = option.dataset.color;
+    });
   }
 
   // Modal handlers
@@ -321,7 +341,8 @@ document.addEventListener("DOMContentLoaded", () => {
         id: Date.now().toString(),
         title,
         intervalDays: interval,
-        startDate: start
+        startDate: start,
+        color: selectedColor
       };
 
       tasks.push(newTask);
